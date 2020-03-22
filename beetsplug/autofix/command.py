@@ -6,6 +6,7 @@
 import os
 import subprocess
 import tempfile
+import time
 from optparse import OptionParser
 
 from beets import util
@@ -28,10 +29,16 @@ class AutofixCommand(Subcommand):
     query = None
     parser: OptionParser = None
 
+    cfg_max_exec_time = None
+
+    exec_time_start = None
     temp_path = None
 
-    def __init__(self, cfg):
-        self.config = cfg
+    def __init__(self, config):
+        self.config = config
+
+        cfg = self.config.flatten()
+        self.cfg_max_exec_time = cfg.get("max_exec_time")
 
         # todo_ this should be class-wide
         self.temp_path = os.path.join(tempfile.gettempdir(), __PLUGIN_NAME__)
@@ -39,6 +46,14 @@ class AutofixCommand(Subcommand):
             os.mkdir(self.temp_path)
 
         self.parser = OptionParser(usage='beet autofix [options] [QUERY...]')
+
+        self.parser.add_option(
+            '-m', '--max_exec_time',
+            action='store', dest='max_exec_time', type='int',
+            default=self.cfg_max_exec_time,
+            help=u'[default: {}] the number of seconds the execution can run'.format(
+                self.cfg_max_exec_time)
+        )
 
         self.parser.add_option(
             '-v', '--version',
@@ -57,6 +72,8 @@ class AutofixCommand(Subcommand):
         self.lib = lib
         self.query = decargs(arguments)
 
+        self.cfg_max_exec_time = options.max_exec_time
+
         if options.version:
             self.show_version_information()
             return
@@ -64,14 +81,19 @@ class AutofixCommand(Subcommand):
         self.handle_main_task()
 
     def handle_main_task(self):
-        self.check_nonexistent_files()
-        self.convert_non_mp3_files()
-        self.convert_high_bitrate_files()
+        self.exec_time_start = int(time.time())
+        try:
+            self.check_nonexistent_files()
+            self.convert_non_mp3_files()
+            self.convert_high_bitrate_files()
+        except TimeoutError:
+            self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
 
     def convert_high_bitrate_files(self):
         items = self._retrieve_library_items()
         self._say("Checking high bitrate items({})...".format(len(items)))
         for item in items:
+            self.check_timer()
             item: Item
             bitrate = int(item.get("bitrate"))
             if bitrate > 182000:
@@ -83,6 +105,7 @@ class AutofixCommand(Subcommand):
         self._say("Checking non-mp3 items({})...".format(len(items)))
 
         for item in items:
+            self.check_timer()
             item: Item
             fmt = item.get("format").lower()
             if fmt != "mp3":
@@ -93,6 +116,7 @@ class AutofixCommand(Subcommand):
         items = self._retrieve_library_items()
         self._say("Checking nonexistent items({})...".format(len(items)))
         for item in items:
+            self.check_timer()
             item: Item
             filepath = item.get("path")
             if not os.path.isfile(filepath):
@@ -109,6 +133,11 @@ class AutofixCommand(Subcommand):
     def show_version_information(self):
         from beetsplug.autofix.version import __version__
         self._say("Plot(beets-{}) plugin for Beets: v{}".format(__PLUGIN_NAME__, __version__))
+
+    def check_timer(self):
+        current_time = int(time.time())
+        if self.cfg_max_exec_time != 0 and current_time - self.exec_time_start > self.cfg_max_exec_time:
+            raise TimeoutError("Time up!")
 
     def _say(self, msg, log_only=False):
         common.say(msg, log_only)

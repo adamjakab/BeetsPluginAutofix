@@ -1,2 +1,2 @@
 autofix:
-  auto: no
+  max_exec_time: 300
