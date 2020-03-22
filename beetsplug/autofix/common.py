@@ -6,8 +6,38 @@
 
 import logging
 import sys
+import os
+import subprocess
+import tempfile
+
+from beets import util
+from beets.library import Item
+from beetsplug import convert
+from beetsplug.convert import ConvertPlugin
 
 __logger__ = logging.getLogger('beets.autofix')
+
+
+def convert_item(item: Item, temp_path):
+    orig_path = item.get("path")
+
+    command, ext = convert.get_format()
+    fd, dest_path = tempfile.mkstemp(util.py3_path(b'.' + ext), dir=temp_path)
+    os.close(fd)
+    dest_path = util.bytestring_path(dest_path)
+
+    try:
+        plg = ConvertPlugin()
+        plg.encode(command, orig_path, dest_path)
+    except subprocess.CalledProcessError:
+        say("There was an error.")
+
+    item.path = dest_path
+    item.write()
+    item.read()
+    os.unlink(orig_path)
+    item.move()
+    item.store()
 
 
 def say(msg, log_only=False):
