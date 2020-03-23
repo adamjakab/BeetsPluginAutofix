@@ -21,6 +21,8 @@ from beetsplug.zero import ZeroPlugin
 
 from beetsplug.lastgenre import LastGenrePlugin
 
+from beetsplug.xtractor import XtractorPlugin, XtractorCommand
+
 # The plugin
 __PLUGIN_NAME__ = u'autofix'
 __PLUGIN_SHORT_DESCRIPTION__ = u'fix your library with little effort'
@@ -95,8 +97,23 @@ class AutofixCommand(Subcommand):
             self.convert_high_bitrate_files()
             self.zero_unwanted_tags()
             self.set_genre()
+            self.extract_audio_data()
         except TimeoutError:
             self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
+
+    def extract_audio_data(self):
+        plg = XtractorPlugin()
+        cmd: XtractorCommand = plg.commands()[0]
+        cmd.query = []
+        cmd.lib = self.lib
+        cmd.find_items_to_analyse()
+        items = cmd.items_to_analyse
+
+        self._say("Xtracting data from items({})...".format(len(items)))
+        for item in items:
+            self.check_timer()
+            item: Item
+            cmd.run_full_analysis(item)
 
     def set_genre(self):
         items = []
