@@ -3,6 +3,7 @@
 #  Author: Adam Jakab <adam at jakab dot pro>
 #  Created: 3/21/20, 11:28 AM
 #  License: See LICENSE.txt
+
 import importlib
 import os
 import subprocess
@@ -39,23 +40,15 @@ class AutofixCommand(Subcommand):
 
     task_ns = "beetsplug.autofix.task"
 
-    items: Results = None
-
     cfg_max_exec_time = None
 
     exec_time_start = None
-    temp_path = None
 
     def __init__(self, config):
         self.config = config
 
         cfg = self.config.flatten()
         self.cfg_max_exec_time = cfg.get("max_exec_time")
-
-        # todo_ this should be class-wide
-        self.temp_path = os.path.join(tempfile.gettempdir(), __PLUGIN_NAME__)
-        if not os.path.isdir(self.temp_path):
-            os.mkdir(self.temp_path)
 
         self.parser = OptionParser(usage='beet autofix [options] [QUERY...]')
 
@@ -73,7 +66,6 @@ class AutofixCommand(Subcommand):
             help=u'show plugin version'
         )
 
-        # Keep this at the end
         super(AutofixCommand, self).__init__(
             parser=self.parser,
             name=__PLUGIN_NAME__,
@@ -244,39 +236,6 @@ class AutofixCommand(Subcommand):
             item: Item
             self._say("Zeroing Item: {}".format(item.evaluate_template('$path')))
             plg.process_item(item)
-
-    def convert_high_bitrate_files(self):
-        items = []
-        for item in self.items:
-            item: Item
-            bitrate = int(item.get("bitrate"))
-            if bitrate > 182000:
-                items.append(item)
-
-        self._say("Converting high bitrate items({})...".format(len(items)))
-        for item in items:
-            self.check_timer()
-            item: Item
-            bitrate = int(item.get("bitrate"))
-            self._say("Converting high bitrate ({}) to lower: {}".format(bitrate, item.get("path")))
-            common.convert_item(item, self.temp_path)
-
-    def convert_non_mp3_files(self):
-        items = []
-        for item in self.items:
-            item: Item
-            fmt = item.get("format").lower()
-            if fmt != "mp3":
-                items.append(item)
-
-        self._say("Converting non-mp3 items({})...".format(len(items)))
-        for item in items:
-            self.check_timer()
-            item: Item
-            self._say("Converting to mp3: {}".format(item.get("path")))
-            common.convert_item(item, self.temp_path)
-
-
 
     def _retrieve_library_items(self, query=None, model_cls=Item):
         query = [] if query is None else query

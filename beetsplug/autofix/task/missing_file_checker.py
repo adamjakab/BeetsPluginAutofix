@@ -1,7 +1,7 @@
 #  Copyright: Copyright (c) 2020., Adam Jakab
 #
 #  Author: Adam Jakab <adam at jakab dot pro>
-#  Created: 3/24/20, 9:53 AM
+#  Created: 24/03/2020, 15.58
 #  License: See LICENSE.txt
 
 from os import path
@@ -11,11 +11,11 @@ from beets.library import Item
 from beetsplug.autofix.task import Task
 
 
-class MissingFileChecker(Task):
+class MissingFileCheckerTask(Task):
     number_of_items_deleted = 0
 
     def __init__(self):
-        super(MissingFileChecker, self).__init__()
+        super(MissingFileCheckerTask, self).__init__()
 
     def setup(self, config, items):
         self.config = config
