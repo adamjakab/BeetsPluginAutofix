@@ -3,6 +3,7 @@
 #  Author: Adam Jakab <adam at jakab dot pro>
 #  Created: 3/21/20, 11:28 AM
 #  License: See LICENSE.txt
+import importlib
 import os
 import subprocess
 import tempfile
@@ -21,7 +22,9 @@ from beetsplug.zero import ZeroPlugin
 
 from beetsplug.lastgenre import LastGenrePlugin
 
-from beetsplug.xtractor import XtractorPlugin, XtractorCommand
+# from beetsplug.xtractor import XtractorPlugin, XtractorCommand
+
+from beetsplug.autofix.task import Task
 
 # The plugin
 __PLUGIN_NAME__ = u'autofix'
@@ -33,6 +36,8 @@ class AutofixCommand(Subcommand):
     lib: Library = None
     query = None
     parser: OptionParser = None
+
+    task_ns = "beetsplug.autofix.task"
 
     items: Results = None
 
@@ -89,17 +94,80 @@ class AutofixCommand(Subcommand):
 
     def handle_main_task(self):
         self.exec_time_start = int(time.time())
+
+        items = self._retrieve_library_items()
+
+        task_list = self.config["tasks"].keys()
+        for task_name in task_list:
+            config = self.config["tasks"][task_name]
+
+            if not config["enabled"].exists() or not config["enabled"].get(bool):
+                self._say("Task({}) is not enabled! Skipping.".format(task_name))
+                continue
+
+            try:
+                task = self.get_task_class_instance(task_name)
+            except ModuleNotFoundError as err:
+                self._say("Task not found! {} Skipping.".format(err))
+                continue
+            except NotImplementedError as err:
+                self._say("Bad Task({})! {} Skipping.".format(task_name, err))
+                continue
+            except RuntimeError as err:
+                self._say("Task({}) runtime error! {} Skipping.".format(task_name, err))
+                continue
+
+            if task:
+                try:
+                    task.setup(config, items)
+                except BaseException as err:
+                    self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
+                    continue
+
+                try:
+                    while not task.is_finished():
+                        self.check_timer()
+                        task.run_next()
+                except TimeoutError:
+                    self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
+                    break
+                except BaseException as err:
+                    self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
+                    continue
+
+                if task.needs_items_reload():
+                    items = self._retrieve_library_items()
+
+                # self.check_nonexistent_files()
+                # self.convert_non_mp3_files()
+                # self.convert_high_bitrate_files()
+                # self.zero_unwanted_tags()
+                # self.set_genre()
+                # self.extract_audio_data()
+
+    def get_task_class_instance(self, module_name):
+        module_name_ns = '{0}.{1}'.format(self.task_ns, module_name)
+
         try:
-            self.items = self._retrieve_library_items()
-            self._say("Total number of items in library: {}".format(len(self.items)))
-            self.check_nonexistent_files()
-            self.convert_non_mp3_files()
-            self.convert_high_bitrate_files()
-            self.zero_unwanted_tags()
-            self.set_genre()
-            self.extract_audio_data()
-        except TimeoutError:
-            self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
+            module = importlib.import_module(module_name_ns)
+        except ModuleNotFoundError as err:
+            raise RuntimeError("Module load error! {}".format(err))
+
+        task_class = None
+        for obj in module.__dict__.values():
+            if isinstance(obj, type) and issubclass(obj, Task) and obj != Task:
+                task_class = obj
+                break
+
+        if not task_class:
+            raise NotImplementedError("There is no subclass of Task class in module: {}".format(module_name_ns))
+
+        try:
+            instance = task_class()
+        except BaseException as err:
+            raise RuntimeError("Instance creation error! {}".format(err))
+
+        return instance
 
     def extract_audio_data(self):
         plg = XtractorPlugin()
@@ -208,20 +276,7 @@ class AutofixCommand(Subcommand):
             self._say("Converting to mp3: {}".format(item.get("path")))
             common.convert_item(item, self.temp_path)
 
-    def check_nonexistent_files(self):
-        self._say("Checking deleted items({})...".format(len(self.items)))
-        remove_count = 0
-        for item in self.items:
-            self.check_timer()
-            item: Item
-            filepath = item.get("path")
-            if not os.path.isfile(filepath):
-                remove_count += 1
-                item.remove()
 
-        if remove_count > 0:
-            self._say("Removed missing items: {}".format(remove_count))
-            self.items = self._retrieve_library_items()
 
     def _retrieve_library_items(self, query=None, model_cls=Item):
         query = [] if query is None else query

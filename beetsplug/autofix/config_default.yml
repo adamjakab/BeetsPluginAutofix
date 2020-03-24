@@ -1,2 +1,4 @@
-autofix:
-  max_exec_time: 300
+max_exec_time: 300
+tasks:
+  missing_file_checker:
+    enabled: yes
