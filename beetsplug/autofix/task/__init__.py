@@ -11,14 +11,16 @@
 from abc import ABC
 from abc import abstractmethod
 
+from beets.library import Library
 from beets.util.confit import Subview
 
 from beetsplug.autofix import common
 
 
 class Task(ABC):
-    items: list = None
     config: Subview = None
+    items: list = None
+    library: Library = None
 
     def __init__(self):
         pass
@@ -28,7 +30,7 @@ class Task(ABC):
         common.say(msg, log_only)
 
     @abstractmethod
-    def setup(self, config, items):
+    def setup(self, config, items, library):
         raise NotImplementedError("You must implement this method.")
 
     @abstractmethod
@@ -43,3 +45,4 @@ class Task(ABC):
         """Indicates if the library items should be reloaded (like in the case of removing missing elements)
         """
         return False
+

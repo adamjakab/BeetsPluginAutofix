@@ -22,15 +22,16 @@ class AudioConversionTask(Task):
     def __init__(self):
         super(AudioConversionTask, self).__init__()
 
-    def setup(self, config, items):
+    def setup(self, config, items, library):
         self.config = config
         self.items = self._find_items_to_convert(items)
+        self.library = library
 
         self.temp_path = os.path.join(tempfile.gettempdir(), self.__class__.__name__)
         if not os.path.isdir(self.temp_path):
             os.mkdir(self.temp_path)
 
-        self._say("Converting items({})...".format(len(items)))
+        self._say("Converting items({})...".format(len(self.items)))
 
     def run_next(self):
         item: Item = self.items.pop(0)

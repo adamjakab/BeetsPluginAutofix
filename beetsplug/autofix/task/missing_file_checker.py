@@ -17,9 +17,10 @@ class MissingFileCheckerTask(Task):
     def __init__(self):
         super(MissingFileCheckerTask, self).__init__()
 
-    def setup(self, config, items):
+    def setup(self, config, items, library):
         self.config = config
         self.items = list(items)
+        self.library = library
         self._say("Checking deleted items({})...".format(len(self.items)))
 
     def run_next(self):

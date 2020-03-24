@@ -5,26 +5,14 @@
 #  License: See LICENSE.txt
 
 import importlib
-import os
-import subprocess
-import tempfile
 import time
 from optparse import OptionParser
 
-from beets import util
-from beets.dbcore.db import Results
 from beets.library import Library, Item, parse_query_parts
 from beets.ui import Subcommand, decargs
 from beets.util.confit import Subview
 
 from beetsplug.autofix import common
-
-from beetsplug.zero import ZeroPlugin
-
-from beetsplug.lastgenre import LastGenrePlugin
-
-# from beetsplug.xtractor import XtractorPlugin, XtractorCommand
-
 from beetsplug.autofix.task import Task
 
 # The plugin
@@ -111,7 +99,7 @@ class AutofixCommand(Subcommand):
 
             if task:
                 try:
-                    task.setup(config, items)
+                    task.setup(config, items, self.lib)
                 except BaseException as err:
                     self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
                     continue
@@ -130,12 +118,7 @@ class AutofixCommand(Subcommand):
                 if task.needs_items_reload():
                     items = self._retrieve_library_items()
 
-                # self.check_nonexistent_files()
-                # self.convert_non_mp3_files()
-                # self.convert_high_bitrate_files()
-                # self.zero_unwanted_tags()
-                # self.set_genre()
-                # self.extract_audio_data()
+        self._say("Done.")
 
     def get_task_class_instance(self, module_name):
         module_name_ns = '{0}.{1}'.format(self.task_ns, module_name)
@@ -161,82 +144,6 @@ class AutofixCommand(Subcommand):
 
         return instance
 
-    def extract_audio_data(self):
-        plg = XtractorPlugin()
-        cmd: XtractorCommand = plg.commands()[0]
-        cmd.query = []
-        cmd.lib = self.lib
-        cmd.find_items_to_analyse()
-        items = cmd.items_to_analyse
-
-        self._say("Xtracting data from items({})...".format(len(items)))
-        for item in items:
-            self.check_timer()
-            item: Item
-            cmd.run_full_analysis(item)
-
-    def set_genre(self):
-        items = []
-        plg = LastGenrePlugin()
-        for item in self.items:
-            item: Item
-            genre = item.get("genre")
-            if genre is None or genre == "":
-                items.append(item)
-
-        self._say("Checking missing genre for items({})...".format(len(items)))
-        for item in items:
-            self.check_timer()
-            item: Item
-            genre = item.get("genre")
-            if genre is None or genre == "":
-                genre, src = plg._get_genre(item)
-                if genre:
-                    self._say("Got Lastfm genre [genre: {}][source: {}] for item: {}"
-                              .format(genre, src, item.evaluate_template('$path')))
-                    item.genre = genre
-                    item.store()
-                    item.write()
-                    continue
-
-                # Use `genre_rosamerica` - better than nothing
-                genre_rosamerica = item.get("genre_rosamerica")
-                if genre_rosamerica in common.ROSAMERICA_GENRES.keys():
-                    genre = common.ROSAMERICA_GENRES[genre_rosamerica]
-                    self._say("Got Genre ROSAMERICA genre [genre: {}] for item: {}"
-                              .format(genre, item.evaluate_template('$path')))
-                    item.genre = genre
-                    item.store()
-                    item.write()
-                    continue
-
-                # if we are still here then there is no way of knowing the genre
-                self._say("Unable to figure out genre for item: {}").format(item.evaluate_template('$path'))
-
-    def zero_unwanted_tags(self):
-        items = []
-        plg = ZeroPlugin()
-        plg_cfg = common.get_plugin_config("zero")
-        if not plg_cfg or not plg_cfg["fields"].exists():
-            self._say("No Zero plugin field config found. Scanning entire library.")
-            items = self.items
-        else:
-            id_reg = []
-            for fld in plg_cfg["fields"].get():
-                for item in self.items:
-                    item: Item
-                    if item.id not in id_reg:
-                        if len(str(item.get(fld))) > 0:
-                            id_reg.append(item.id)
-                            items.append(item)
-
-        self._say("Checking non-zeroed items({})...".format(len(items)))
-        for item in items:
-            self.check_timer()
-            item: Item
-            self._say("Zeroing Item: {}".format(item.evaluate_template('$path')))
-            plg.process_item(item)
-
     def _retrieve_library_items(self, query=None, model_cls=Item):
         query = [] if query is None else query
         parsed_query = parse_query_parts(query, model_cls)[0]
@@ -244,14 +151,15 @@ class AutofixCommand(Subcommand):
 
         return self.lib.items(parsed_query)
 
-    def show_version_information(self):
-        from beetsplug.autofix.version import __version__
-        self._say("Plot(beets-{}) plugin for Beets: v{}".format(__PLUGIN_NAME__, __version__))
-
     def check_timer(self):
         current_time = int(time.time())
         if self.cfg_max_exec_time != 0 and current_time - self.exec_time_start > self.cfg_max_exec_time:
             raise TimeoutError("Time up!")
 
-    def _say(self, msg, log_only=False):
+    def show_version_information(self):
+        from beetsplug.autofix.version import __version__
+        self._say("Plot(beets-{}) plugin for Beets: v{}".format(__PLUGIN_NAME__, __version__))
+
+    @staticmethod
+    def _say(msg, log_only=False):
         common.say(msg, log_only)

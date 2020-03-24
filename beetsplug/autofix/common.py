@@ -11,17 +11,6 @@ from beets import config
 
 __logger__ = logging.getLogger('beets.autofix')
 
-ROSAMERICA_GENRES = {
-    "cla": "classical",
-    "dan": "dance",
-    "hip": "hip-hop",
-    "jaz": "jazz",
-    "pop": "pop",
-    "rhy": "rhythm and blues",
-    "roc": "rock",
-    "spe": "speech"
-}
-
 
 def get_plugin_config(plugin_name):
     cfg = None
