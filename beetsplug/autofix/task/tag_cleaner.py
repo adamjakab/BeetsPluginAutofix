@@ -4,7 +4,6 @@
 #  Created: 24/03/2020, 15.58
 #  License: See LICENSE.txt
 
-from beets.library import Item
 from beetsplug.zero import ZeroPlugin
 
 from beetsplug.autofix import common

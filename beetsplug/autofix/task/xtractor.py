@@ -25,10 +25,27 @@ class XtractorTask(Task):
         self.item = item
 
     def run(self):
+        if not self._item_needs_processing():
+            return
+
+        self._say("Xtracting item: {}".format(self.item))
         cmd: XtractorCommand = self.plugin.commands()[0]
         cmd.run_full_analysis(self.item)
 
     def _item_needs_processing(self):
         answer = False
+
+        plg_cfg = common.get_plugin_config("xtractor")
+        target_maps = ["low_level_targets", "high_level_targets"]
+
+        for map_key in target_maps:
+            if answer:
+                break
+            target_map = plg_cfg[map_key]
+            for fld in target_map:
+                if target_map[fld]["required"].exists() and target_map[fld]["required"].get(bool):
+                    if not self.item.get(fld):
+                        answer = True
+                        break
 
         return answer
