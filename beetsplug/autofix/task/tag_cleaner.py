@@ -12,38 +12,52 @@ from beetsplug.autofix.task import Task
 
 class TagCleanerTask(Task):
     plugin = None
+    plugin_config = None
+    plugin_fields = None
+    is_cleaned = False
 
     def __init__(self):
         super(TagCleanerTask, self).__init__()
         assert common.is_plugin_enabled("zero"), "The 'zero' plugin is not enabled!"
         self.plugin = ZeroPlugin()
+        self.plugin_config = common.get_plugin_config("zero")
+        self.plugin_fields = self.plugin_config["fields"].get() \
+            if self.plugin_config.exists() and self.plugin_config["fields"].exists() else []
 
     def setup(self, config, item):
         self.config = config
         self.item = item
+        self.is_cleaned = False
 
     def run(self):
         if not self._item_needs_processing():
             return
 
-        self._say("Cleaning: {}".format(self.item))
+        self._say("Cleaning tags: {}".format(self.item), log_only=True)
         self.plugin.process_item(self.item)
+        self.is_cleaned = True
 
     def _item_needs_processing(self):
         answer = False
 
-        plg_cfg = common.get_plugin_config("zero")
-
-        if not plg_cfg.exists() or not plg_cfg["fields"].exists():
-            answer = True
-        else:
-            for fld in plg_cfg["fields"].get():
-                if len(str(self.item.get(fld))) > 0:
-                    answer = True
-                    break
+        for fld in self.plugin_fields:
+            if self.item.get(fld):
+                answer = True
+                break
 
         return answer
 
-    @staticmethod
-    def needs_item_write():
-        return True
+    def needs_item_store(self):
+        answer = False
+
+        if self.is_cleaned:
+            if (self.plugin_config["update_database"].exists()
+                and not self.plugin_config["update_database"].get(bool)) \
+                    or not self.plugin_config["update_database"].exists():
+                answer = True
+
+        return answer
+
+    def needs_item_write(self):
+        # the plugin writes to file when item is changed
+        return False

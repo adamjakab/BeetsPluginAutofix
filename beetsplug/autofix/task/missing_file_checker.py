@@ -3,7 +3,7 @@
 #  Author: Adam Jakab <adam at jakab dot pro>
 #  Created: 24/03/2020, 15.58
 #  License: See LICENSE.txt
-
+import time
 from os import path
 
 from beetsplug.autofix.task import Task
@@ -22,7 +22,7 @@ class MissingFileCheckerTask(Task):
 
     def run(self):
         if not path.isfile(self.item.get("path")):
-            self._say("Item was deleted: {}...".format(self.item))
+            self._say("Item was deleted: {}...".format(self.item), log_only=True)
             self.item.remove()
             self.removed = True
 

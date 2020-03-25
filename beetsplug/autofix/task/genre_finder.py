@@ -41,7 +41,7 @@ class GenreFinderTask(Task):
         if not self._item_needs_processing():
             return
 
-        self._say("Finding genre for: {}".format(self.item))
+        self._say("Finding genre for: {}".format(self.item), log_only=True)
 
         # Try Lastgenre plugin
         genre, src = self.plugin._get_genre(self.item)

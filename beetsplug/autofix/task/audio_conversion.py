@@ -37,7 +37,7 @@ class AudioConversionTask(Task):
         if not self._item_needs_processing():
             return
 
-        self._say("Converting: {}".format(self.item.evaluate_template("[$format][$bitrate]: $path")))
+        self._say("Converting: {}".format(self.item.evaluate_template("[$format][$bitrate]: $path")), log_only=True)
         orig_path = self.item.get("path")
 
         command, ext = convert.get_format()

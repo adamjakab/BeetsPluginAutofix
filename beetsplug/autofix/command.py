@@ -8,6 +8,9 @@ import importlib
 import time
 from optparse import OptionParser
 
+from alive_progress import alive_bar
+
+from beets.dbcore.query import FixedFieldSort
 from beets.library import Library, Item, parse_query_parts
 from beets.ui import Subcommand, decargs
 from beets.util.confit import Subview
@@ -79,14 +82,18 @@ class AutofixCommand(Subcommand):
         items = self._retrieve_library_items()
         done = 0
         self._say("Total number of items: {}".format(len(items)))
-        for item in items:
-            self._execute_tasks_for_item(item)
-            done += 1
-            try:
-                self.check_timer()
-            except TimeoutError:
-                self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
-                break
+        with alive_bar(len(items)) as bar:
+            for item in items:
+                try:
+                    self._execute_tasks_for_item(item)
+                    done += 1
+                    bar()
+                except RuntimeError as err:
+                    self._say(err)
+                    break
+                except TimeoutError:
+                    self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
+                    break
 
         self._say("Done.")
         self._say("Elaborated items: {}".format(done))
@@ -95,10 +102,12 @@ class AutofixCommand(Subcommand):
         needs_item_store = False
         needs_item_write = False
         items_was_removed = False
+        interrupt_requested = False
 
         for task_name in self.task_registry.keys():
             task = self.task_registry[task_name]["instance"]
             config = self.task_registry[task_name]["config"]
+            self.check_timer()
 
             try:
                 task.setup(config, item)
@@ -108,18 +117,25 @@ class AutofixCommand(Subcommand):
                 items_was_removed = task.item_was_removed()
                 if items_was_removed:
                     break
+            except KeyboardInterrupt:
+                interrupt_requested = True
+                break
             except BaseException as err:
                 self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
                 continue
 
-        if items_was_removed:
-            return
+        if not interrupt_requested:
+            if items_was_removed:
+                return
 
-        if needs_item_store:
-            item.store()
+            if needs_item_store:
+                item.store()
 
-        if needs_item_write:
-            item.try_write()
+            if needs_item_write:
+                item.try_write()
+
+        if interrupt_requested:
+            raise RuntimeError("Interrupted")
 
     def _setup_task_registry(self):
         self.task_registry = {}
@@ -177,10 +193,14 @@ class AutofixCommand(Subcommand):
 
     def _retrieve_library_items(self, query=None, model_cls=Item):
         query = [] if query is None else query
-        parsed_query = parse_query_parts(query, model_cls)[0]
-        self._say("Selection query[{}]: {}".format(query, parsed_query), log_only=True)
+        parsed_query, parsed_sort = parse_query_parts(query, model_cls)
 
-        return self.lib.items(parsed_query)
+        parsed_sort = FixedFieldSort("albumartist", ascending=True)
+
+        self._say("Selection query[{}]: {}".format(query, parsed_query), log_only=True)
+        self._say("Ordering[{}]: {}".format(query, parsed_sort), log_only=True)
+
+        return self.lib.items(parsed_query, parsed_sort)
 
     def check_timer(self):
         current_time = int(time.time())

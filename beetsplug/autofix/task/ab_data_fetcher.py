@@ -3,6 +3,7 @@
 #  Author: Adam Jakab <adam at jakab dot pro>
 #  Created: 3/25/20, 3:44 PM
 #  License: See LICENSE.txt
+
 from beets.util.confit import Subview
 
 from beetsplug.autofix import common
@@ -13,12 +14,14 @@ from beetsplug.acousticbrainz import AcousticPlugin
 
 class ABDataFetcherTask(Task):
     plugin = None
+    plugin_config = None
     has_new_data = False
 
     def __init__(self):
         super(ABDataFetcherTask, self).__init__()
         assert common.is_plugin_enabled("acousticbrainz"), "The 'acousticbrainz' plugin is not enabled!"
         self.plugin = AcousticPlugin()
+        self.plugin_config = common.get_plugin_config("xtractor")
 
     def setup(self, config, item):
         self.config = config
@@ -29,7 +32,7 @@ class ABDataFetcherTask(Task):
         if not self._item_needs_processing():
             return
 
-        self._say("Getting AB data: {}".format(self.item))
+        self._say("Getting AB data: {}".format(self.item), log_only=True)
 
         abdata = self.plugin._get_data(self.item.mb_trackid)
         if not abdata:
@@ -50,10 +53,9 @@ class ABDataFetcherTask(Task):
         """
         data = {}
 
-        plg_cfg = common.get_plugin_config("xtractor")
         target_maps = ["low_level_targets", "high_level_targets"]
         for map_key in target_maps:
-            target_map = plg_cfg[map_key]
+            target_map = self.plugin_config[map_key]
             for key in target_map.keys():
                 try:
                     val = self._extract_value_from_abdata(abdata, target_map[key])
@@ -91,12 +93,11 @@ class ABDataFetcherTask(Task):
         if not self.item.mb_trackid:
             return False
 
-        plg_cfg = common.get_plugin_config("xtractor")
         target_maps = ["low_level_targets", "high_level_targets"]
         for map_key in target_maps:
             if answer:
                 break
-            target_map = plg_cfg[map_key]
+            target_map = self.plugin_config[map_key]
             for fld in target_map:
                 if target_map[fld]["required"].exists() and target_map[fld]["required"].get(bool):
                     if not self.item.get(fld):

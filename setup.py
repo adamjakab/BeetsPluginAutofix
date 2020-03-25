@@ -40,6 +40,7 @@ setup(
 
     install_requires=[
         'beets>=1.4.9',
+        'alive-progress',
     ],
 
     tests_require=[
