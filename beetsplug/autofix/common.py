@@ -5,24 +5,27 @@
 #  License: See LICENSE.txt
 
 import logging
-import sys
 
 from beets import config
 
 __logger__ = logging.getLogger('beets.autofix')
 
 
+def is_plugin_enabled(plugin_name):
+    enabled_plugins = config["plugins"].get() if config["plugins"].exists() else []
+    return plugin_name in enabled_plugins
+
+
 def get_plugin_config(plugin_name):
     cfg = None
     if config[plugin_name].exists():
         cfg = config[plugin_name]
-
     return cfg
 
 
 def say(msg, log_only=False):
-    """Log and write to stdout
-    """
-    __logger__.debug(msg)
-    if not log_only:
-        sys.stdout.write(msg + "\n")
+    if log_only:
+        __logger__.debug(msg)
+    else:
+        # sys.stdout.write(msg + "\n")
+        __logger__.info(msg)

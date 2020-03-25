@@ -1,14 +1,12 @@
 max_exec_time: 300
 tasks:
   missing_file_checker:
-    enabled: yes
+    enabled: no
   audio_conversion:
-    enabled: yes
-    format: mp3
-    max_bitrate: 182000
+    enabled: no
   tag_cleaner:
-    enabled: yes
+    enabled: no
   genre_finder:
-    enabled: yes
+    enabled: no
   xtractor:
-    enabled: yes
+    enabled: no

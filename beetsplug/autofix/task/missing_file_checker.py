@@ -6,28 +6,25 @@
 
 from os import path
 
-from beets.library import Item
-
 from beetsplug.autofix.task import Task
 
 
 class MissingFileCheckerTask(Task):
-    number_of_items_deleted = 0
+    removed = False
 
     def __init__(self):
         super(MissingFileCheckerTask, self).__init__()
 
-    def setup(self, config, items, library):
+    def setup(self, config, item):
         self.config = config
-        self.items = list(items)
-        self.library = library
-        self._say("Checking deleted items({})...".format(len(self.items)))
+        self.item = item
+        self.removed = False
 
-    def run_next(self):
-        item: Item = self.items.pop(0)
-        if not path.isfile(item.get("path")):
-            item.remove()
-            self.number_of_items_deleted += 1
+    def run(self):
+        if not path.isfile(self.item.get("path")):
+            self._say("Item was deleted: {}...".format(self.item))
+            self.item.remove()
+            self.removed = True
 
-    def needs_items_reload(self):
-        return self.number_of_items_deleted > 0
+    def item_was_removed(self):
+        return self.removed

@@ -27,6 +27,7 @@ class AutofixCommand(Subcommand):
     parser: OptionParser = None
 
     task_ns = "beetsplug.autofix.task"
+    task_registry = None
 
     cfg_max_exec_time = None
 
@@ -70,19 +71,65 @@ class AutofixCommand(Subcommand):
             self.show_version_information()
             return
 
-        self.handle_main_task()
+        self._setup_task_registry()
+        self._execute_tasks_for_all_items()
 
-    def handle_main_task(self):
+    def _execute_tasks_for_all_items(self):
         self.exec_time_start = int(time.time())
-
         items = self._retrieve_library_items()
+        done = 0
+        self._say("Total number of items: {}".format(len(items)))
+        for item in items:
+            self._execute_tasks_for_item(item)
+            done += 1
+            try:
+                self.check_timer()
+            except TimeoutError:
+                self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
+                break
+
+        self._say("Done.")
+        self._say("Elaborated items: {}".format(done))
+
+    def _execute_tasks_for_item(self, item: Item):
+        needs_item_store = False
+        needs_item_write = False
+        items_was_removed = False
+
+        for task_name in self.task_registry.keys():
+            task = self.task_registry[task_name]["instance"]
+            config = self.task_registry[task_name]["config"]
+
+            try:
+                task.setup(config, item)
+                task.run()
+                needs_item_store = task.needs_item_store() | needs_item_store
+                needs_item_write = task.needs_item_write() | needs_item_write
+                items_was_removed = task.item_was_removed()
+                if items_was_removed:
+                    break
+            except BaseException as err:
+                self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
+                continue
+
+        if items_was_removed:
+            return
+
+        if needs_item_store:
+            item.store()
+
+        if needs_item_write:
+            item.try_write()
+
+    def _setup_task_registry(self):
+        self.task_registry = {}
 
         task_list = self.config["tasks"].keys()
         for task_name in task_list:
             config = self.config["tasks"][task_name]
 
             if not config["enabled"].exists() or not config["enabled"].get(bool):
-                self._say("Task({}) is not enabled! Skipping.".format(task_name))
+                self._say("Task({}) is not enabled! Skipping.".format(task_name), log_only=True)
                 continue
 
             try:
@@ -97,28 +144,12 @@ class AutofixCommand(Subcommand):
                 self._say("Task({}) runtime error! {} Skipping.".format(task_name, err))
                 continue
 
-            if task:
-                try:
-                    task.setup(config, items, self.lib)
-                except BaseException as err:
-                    self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
-                    continue
+            self.task_registry[task_name] = {
+                "instance": task,
+                "config": config
+            }
 
-                try:
-                    while not task.is_finished():
-                        self.check_timer()
-                        task.run_next()
-                except TimeoutError:
-                    self._say("Time is up! {} seconds have passed.".format(self.cfg_max_exec_time))
-                    break
-                except BaseException as err:
-                    self._say('Task module error[{}]: {} Skipping.'.format(task_name, err))
-                    continue
-
-                if task.needs_items_reload():
-                    items = self._retrieve_library_items()
-
-        self._say("Done.")
+        self._say("The following tasks will be executed: {}".format(", ".join(list(self.task_registry.keys()))))
 
     def get_task_class_instance(self, module_name):
         module_name_ns = '{0}.{1}'.format(self.task_ns, module_name)

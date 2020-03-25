@@ -11,7 +11,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from beets.library import Library
+from beets.library import Item
 from beets.util.confit import Subview
 
 from beetsplug.autofix import common
@@ -19,30 +19,37 @@ from beetsplug.autofix import common
 
 class Task(ABC):
     config: Subview = None
-    items: list = None
-    library: Library = None
+    item: Item = None
 
     def __init__(self):
         pass
 
-    @staticmethod
-    def _say(msg, log_only=False):
+    def _say(self, msg, log_only=False):
+        msg = "[{name}]: {msg}".format(name=self.__class__.__name__, msg=msg)
         common.say(msg, log_only)
 
     @abstractmethod
-    def setup(self, config, items, library):
+    def setup(self, config, item):
         raise NotImplementedError("You must implement this method.")
 
     @abstractmethod
-    def run_next(self):
+    def run(self):
         raise NotImplementedError("You must implement this method.")
 
-    def is_finished(self):
-        return len(self.items) == 0
-
     @staticmethod
-    def needs_items_reload():
-        """Indicates if the library items should be reloaded (like in the case of removing missing elements)
+    def needs_item_store():
+        """Indicates that the library item needs to be stored
         """
         return False
 
+    @staticmethod
+    def needs_item_write():
+        """Indicates that the library item needs to be written to the media file
+        """
+        return False
+
+    @staticmethod
+    def item_was_removed():
+        """Indicates that the library item was removed (so all further tasks should be skipped)
+        """
+        return False
