@@ -27,5 +27,4 @@ def say(msg, log_only=False):
     if log_only:
         __logger__.debug(msg)
     else:
-        # sys.stdout.write(msg + "\n")
         __logger__.info(msg)
