@@ -79,7 +79,7 @@ class AutofixCommand(Subcommand):
 
     def _execute_tasks_for_all_items(self):
         self.exec_time_start = int(time.time())
-        items = self._retrieve_library_items()
+        items = self._retrieve_library_items(self.query)
         done = 0
         self._say("Total number of items: {}".format(len(items)))
         with alive_bar(len(items)) as bar:
