@@ -34,7 +34,7 @@ setup(
 
     include_package_data=True,
     test_suite='test',
-    packages=['beetsplug.autofix'],
+    packages=['beetsplug.autofix', 'beetsplug.autofix.task'],
 
     python_requires='>=3.6',
 
