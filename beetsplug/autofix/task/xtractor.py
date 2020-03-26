@@ -32,6 +32,7 @@ class XtractorTask(Task):
 
         self._say("Xtracting item: {}".format(self.item), log_only=True)
         cmd: XtractorCommand = self.plugin.commands()[0]
+        cmd.cfg_quiet = True
         cmd.run_full_analysis(self.item)
 
     def _item_needs_processing(self):
