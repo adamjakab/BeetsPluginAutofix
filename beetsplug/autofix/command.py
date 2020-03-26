@@ -87,7 +87,7 @@ class AutofixCommand(Subcommand):
                 try:
                     self._execute_tasks_for_item(item)
                     done += 1
-                    bar()
+                    bar(str(item))
                 except RuntimeError as err:
                     self._say(err)
                     break
