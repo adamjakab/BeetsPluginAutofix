@@ -6,6 +6,8 @@ tasks:
     enabled: no
   tag_cleaner:
     enabled: no
+  ab_data_fetcher:
+    enabled: no
   genre_finder:
     enabled: no
   xtractor:
