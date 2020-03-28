@@ -5,15 +5,32 @@
 #  License: See LICENSE.txt
 
 
+from beetsplug.autofix import about
 from test.helper import TestHelper, Assertions, \
     PLUGIN_NAME, PLUGIN_SHORT_DESCRIPTION, PACKAGE_NAME, PACKAGE_TITLE, PLUGIN_VERSION, \
     capture_log
 
 plg_log_ns = 'beets.{}'.format(PLUGIN_NAME)
 
+
 class CompletionTest(TestHelper, Assertions):
-    """Test invocation of the plugin.
+    """Test invocation of the plugin and basic package health.
     """
+
+    def test_about_descriptor_file(self):
+        self.assertTrue(hasattr(about, "__author__"))
+        self.assertTrue(hasattr(about, "__email__"))
+        self.assertTrue(hasattr(about, "__copyright__"))
+        self.assertTrue(hasattr(about, "__license__"))
+        self.assertTrue(hasattr(about, "__version__"))
+        self.assertTrue(hasattr(about, "__status__"))
+        self.assertTrue(hasattr(about, "__PACKAGE_TITLE__"))
+        self.assertTrue(hasattr(about, "__PACKAGE_NAME__"))
+        self.assertTrue(hasattr(about, "__PACKAGE_DESCRIPTION__"))
+        self.assertTrue(hasattr(about, "__PACKAGE_URL__"))
+        self.assertTrue(hasattr(about, "__PLUGIN_NAME__"))
+        self.assertTrue(hasattr(about, "__PLUGIN_ALIAS__"))
+        self.assertTrue(hasattr(about, "__PLUGIN_SHORT_DESCRIPTION__"))
 
     def test_application(self):
         output = self.runcli()
