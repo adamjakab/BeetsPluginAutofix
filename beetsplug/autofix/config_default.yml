@@ -1,6 +1,8 @@
-max_exec_time: 300
+max_exec_time: 0
 tasks:
   missing_file_checker:
+    enabled: no
+  year_fixer:
     enabled: no
   audio_conversion:
     enabled: no

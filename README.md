@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/adamjakab/BeetsPluginAutofix.svg?branch=master)](https://travis-ci.org/adamjakab/BeetsPluginAutofix)
 [![Coverage Status](https://coveralls.io/repos/github/adamjakab/BeetsPluginAutofix/badge.svg?branch=master)](https://coveralls.io/github/adamjakab/BeetsPluginAutofix?branch=master)
 [![PyPi](https://img.shields.io/pypi/v/beets-autofix.svg)](https://pypi.org/project/beets-autofix/)
-
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 
 # Autofix (Beets Plugin)
 

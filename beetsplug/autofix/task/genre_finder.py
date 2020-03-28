@@ -4,8 +4,6 @@
 #  Created: 24/03/2020, 15.57
 #  License: See LICENSE.txt
 
-from beets.library import Item
-
 from beetsplug.autofix.task import Task
 
 from beetsplug.autofix import common
