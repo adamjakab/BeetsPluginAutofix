@@ -3,6 +3,7 @@
 #  Author: Adam Jakab <adam at jakab dot pro>
 #  Created: 3/26/20, 8:14 PM
 #  License: See LICENSE.txt
+
 import time
 
 from beetsplug.autofix.task import Task

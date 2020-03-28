@@ -28,13 +28,16 @@ from beets.util.confit import Subview, Dumper
 from six import StringIO
 
 from beetsplug import autofix
+from beetsplug.autofix import common
 
 logging.getLogger('beets').propagate = True
 
 # Values
-PLUGIN_NAME = u'autofix'
-PLUGIN_SHORT_NAME = u''
-PLUGIN_SHORT_DESCRIPTION = u'fix your library with little effort'
+PLUGIN_NAME = common.plg_ns['__PLUGIN_NAME__']
+PLUGIN_SHORT_DESCRIPTION = common.plg_ns['__PLUGIN_SHORT_DESCRIPTION__']
+PLUGIN_VERSION = common.plg_ns['__version__']
+PACKAGE_NAME = common.plg_ns['__PACKAGE_NAME__']
+PACKAGE_TITLE = common.plg_ns['__PACKAGE_TITLE__']
 
 
 class LogCapture(logging.Handler):

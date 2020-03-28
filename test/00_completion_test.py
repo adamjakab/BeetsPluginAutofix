@@ -4,29 +4,38 @@
 #  Created: 3/26/20, 4:50 PM
 #  License: See LICENSE.txt
 
-import re
 
-from test.helper import TestHelper, Assertions, PLUGIN_NAME, PLUGIN_SHORT_NAME, PLUGIN_SHORT_DESCRIPTION, capture_stdout
+from test.helper import TestHelper, Assertions, \
+    PLUGIN_NAME, PLUGIN_SHORT_DESCRIPTION, PACKAGE_NAME, PACKAGE_TITLE, PLUGIN_VERSION, \
+    capture_log
 
+plg_log_ns = 'beets.{}'.format(PLUGIN_NAME)
 
 class CompletionTest(TestHelper, Assertions):
     """Test invocation of the plugin.
     """
 
     def test_application(self):
-        with capture_stdout() as out:
-            self.runcli()
-
-        expected = "{0} +?{2}".format(
-            re.escape(PLUGIN_NAME),
-            re.escape(PLUGIN_SHORT_NAME),
-            re.escape(PLUGIN_SHORT_DESCRIPTION)
-        )
-
-        self.assertRegex(out.getvalue(), expected)
+        output = self.runcli()
+        self.assertIn(PLUGIN_NAME, output)
+        self.assertIn(PLUGIN_SHORT_DESCRIPTION, output)
 
     def test_application_plugin_list(self):
-        with capture_stdout() as out:
-            self.runcli("version")
+        output = self.runcli("version")
+        self.assertIn("plugins: {0}".format(PLUGIN_NAME), output)
 
-        self.assertIn("plugins: {0}".format(PLUGIN_NAME), out.getvalue())
+    def test_run_plugin(self):
+        with capture_log(plg_log_ns) as logs:
+            self.runcli(PLUGIN_NAME)
+        self.assertIn("autofix: Done.", "\n".join(logs))
+
+    def test_plugin_version(self):
+        with capture_log(plg_log_ns) as logs:
+            self.runcli(PLUGIN_NAME, "--version")
+
+        versioninfo = "{pt}({pn}) plugin for Beets: v{ver}".format(
+            pt=PACKAGE_TITLE,
+            pn=PACKAGE_NAME,
+            ver=PLUGIN_VERSION
+        )
+        self.assertIn(versioninfo, "\n".join(logs))

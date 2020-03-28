@@ -18,10 +18,6 @@ from beets.util.confit import Subview
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
 
-# The plugin
-__PLUGIN_NAME__ = u'autofix'
-__PLUGIN_SHORT_DESCRIPTION__ = u'fix your library with little effort'
-
 
 class AutofixCommand(Subcommand):
     config: Subview = None
@@ -42,13 +38,15 @@ class AutofixCommand(Subcommand):
         cfg = self.config.flatten()
         self.cfg_max_exec_time = cfg.get("max_exec_time")
 
-        self.parser = OptionParser(usage='beet autofix [options] [QUERY...]')
+        self.parser = OptionParser(usage='beet {plg} [options] [QUERY...]'.format(
+            plg=common.plg_ns['__PLUGIN_NAME__']
+        ))
 
         self.parser.add_option(
             '-m', '--max_exec_time',
             action='store', dest='max_exec_time', type='int',
             default=self.cfg_max_exec_time,
-            help=u'[default: {}] the number of seconds the execution can run'.format(
+            help=u'[default: {}] interrupt execution after this the number of seconds'.format(
                 self.cfg_max_exec_time)
         )
 
@@ -60,8 +58,9 @@ class AutofixCommand(Subcommand):
 
         super(AutofixCommand, self).__init__(
             parser=self.parser,
-            name=__PLUGIN_NAME__,
-            help=__PLUGIN_SHORT_DESCRIPTION__
+            name=common.plg_ns['__PLUGIN_NAME__'],
+            aliases=[common.plg_ns['__PLUGIN_ALIAS__']] if common.plg_ns['__PLUGIN_ALIAS__'] else [],
+            help=common.plg_ns['__PLUGIN_SHORT_DESCRIPTION__']
         )
 
     def func(self, lib: Library, options, arguments):
@@ -208,9 +207,12 @@ class AutofixCommand(Subcommand):
             raise TimeoutError("Time up!")
 
     def show_version_information(self):
-        from beetsplug.autofix.version import __version__
-        self._say("Plot(beets-{}) plugin for Beets: v{}".format(__PLUGIN_NAME__, __version__))
+        self._say("{pt}({pn}) plugin for Beets: v{ver}".format(
+            pt=common.plg_ns['__PACKAGE_TITLE__'],
+            pn=common.plg_ns['__PACKAGE_NAME__'],
+            ver=common.plg_ns['__version__']
+        ), log_only=False)
 
     @staticmethod
-    def _say(msg, log_only=False):
-        common.say(msg, log_only)
+    def _say(msg, log_only=True, is_error=False):
+        common.say(msg, log_only, is_error)
