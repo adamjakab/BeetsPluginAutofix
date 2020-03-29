@@ -10,7 +10,7 @@ tasks:
     enabled: no
   ab_data_fetcher:
     enabled: no
-  genre_finder:
-    enabled: no
   xtractor:
+    enabled: no
+  genre_finder:
     enabled: no

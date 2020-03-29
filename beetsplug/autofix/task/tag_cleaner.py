@@ -4,10 +4,9 @@
 #  Created: 24/03/2020, 15.58
 #  License: See LICENSE.txt
 
-from beetsplug.zero import ZeroPlugin
-
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
+from beetsplug.zero import ZeroPlugin
 
 
 class TagCleanerTask(Task):
@@ -57,7 +56,3 @@ class TagCleanerTask(Task):
                 answer = True
 
         return answer
-
-    def needs_item_write(self):
-        # the plugin writes to file when item is changed
-        return False
