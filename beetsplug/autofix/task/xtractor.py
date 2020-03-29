@@ -5,16 +5,15 @@
 #  License: See LICENSE.txt
 
 from beets.library import Item
-
-from beetsplug.autofix.task import Task
-
+from beets.util.confit import Subview
 from beetsplug.autofix import common
+from beetsplug.autofix.task import Task
 from beetsplug.xtractor import XtractorPlugin, XtractorCommand
 
 
 class XtractorTask(Task):
     plugin = None
-    plugin_config = None
+    plugin_config: Subview = None
 
     def __init__(self):
         super(XtractorTask, self).__init__()
@@ -22,7 +21,7 @@ class XtractorTask(Task):
         self.plugin = XtractorPlugin()
         self.plugin_config = common.get_plugin_config("xtractor")
 
-    def setup(self, config, item):
+    def setup(self, config, item: Item):
         self.config = config
         self.item = item
 
