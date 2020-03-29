@@ -158,7 +158,6 @@ class ABDataFetcherTask(Task):
         # Check attributes listed in the AB plugin
         for fld in target_map.keys():
             if not self.item.get(fld):
-                self._say("Missing Fld: {}".format(fld), log_only=True)
                 answer = True
                 break
 
