@@ -78,13 +78,13 @@ target_map = {
 
 class ABDataFetcherTask(Task):
     plugin = None
-    plugin_config = None
+    plugin_config: Subview = None
     has_new_data = False
 
     def __init__(self):
         super(ABDataFetcherTask, self).__init__()
-        assert common.is_plugin_enabled(
-            "acousticbrainz"), "The 'acousticbrainz' plugin is not enabled!"
+        assert common.is_plugin_enabled("acousticbrainz"), \
+            "The 'acousticbrainz' plugin is not enabled!"
         self.plugin = AcousticPlugin()
         self.plugin_config = common.get_plugin_config("acousticbrainz")
 
@@ -109,8 +109,8 @@ class ABDataFetcherTask(Task):
 
         self._say("Got clean AB data: {}".format(audiodata), log_only=True)
         for attr in audiodata.keys():
-            # todo: add force option
-            if audiodata.get(attr) and not self.item.get(attr):
+            if (audiodata.get(attr) and not self.item.get(attr)) or \
+                    self.plugin_config["force"].get(bool):
                 setattr(self.item, attr, audiodata.get(attr))
                 self.has_new_data = True
 
@@ -150,7 +150,10 @@ class ABDataFetcherTask(Task):
         if not self.item.mb_trackid:
             self._say("Item does not have `mb_trackid`. Cannot proceed.",
                       log_only=True)
-            return answer
+            return False
+
+        if self.plugin_config["force"].get(bool):
+            return True
 
         # Check attributes listed in the AB plugin
         for fld in target_map.keys():
