@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/adamjakab/BeetsPluginAutofix.svg?branch=master)](https://travis-ci.org/adamjakab/BeetsPluginAutofix)
 [![Coverage Status](https://coveralls.io/repos/github/adamjakab/BeetsPluginAutofix/badge.svg?branch=master)](https://coveralls.io/github/adamjakab/BeetsPluginAutofix?branch=master)
 [![PyPi](https://img.shields.io/pypi/v/beets-autofix.svg)](https://pypi.org/project/beets-autofix/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/beets-autofix.svg)](https://pypi.org/project/beets-autofix/)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 
 # Autofix (Beets Plugin)
@@ -107,10 +108,10 @@ This task will call the `lastgenre` plugin to find out the genre of a specific s
 ```
 
 ## Issues
-If something is not working as expected please use the Issue tracker.
-If the documentation is not clear please use the Issue tracker.
-If you have a feature request please use the Issue tracker.
-In any other situation please use the Issue tracker.
+- If something is not working as expected please use the Issue tracker.
+- If the documentation is not clear please use the Issue tracker.
+- If you have a feature request please use the Issue tracker.
+- In any other situation please use the Issue tracker.
 
 
 ## Other plugins by the same author

@@ -11,18 +11,21 @@
 from abc import ABC
 from abc import abstractmethod
 
-from beets.library import Item
+from beets.library import Item, Library
 from beets.util.confit import Subview
-
 from beetsplug.autofix import common
 
 
 class Task(ABC):
     config: Subview = None
+    lib: Library = None
     item: Item = None
 
     def __init__(self):
         pass
+
+    def set_library(self, lib):
+        self.lib = lib
 
     def _say(self, msg, log_only=False):
         msg = "[{name}]: {msg}".format(name=self.__class__.__name__, msg=msg)
