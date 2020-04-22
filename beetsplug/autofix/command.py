@@ -9,12 +9,10 @@ import time
 from optparse import OptionParser
 
 from alive_progress import alive_bar
-
 from beets.dbcore.query import FixedFieldSort
 from beets.library import Library, Item, parse_query_parts
 from beets.ui import Subcommand, decargs
 from beets.util.confit import Subview
-
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
 
@@ -84,9 +82,9 @@ class AutofixCommand(Subcommand):
         with alive_bar(len(items)) as bar:
             for item in items:
                 try:
+                    bar(str(item))
                     self._execute_tasks_for_item(item)
                     done += 1
-                    bar(str(item))
                 except RuntimeError as err:
                     self._say(err)
                     break
@@ -156,8 +154,13 @@ class AutofixCommand(Subcommand):
                 self._say("Bad Task({})! {} Skipping.".format(task_name, err))
                 continue
             except RuntimeError as err:
-                self._say("Task({}) runtime error! {} Skipping.".format(task_name, err))
+                self._say(
+                    "Task({}) runtime error! {} Skipping.".format(task_name,
+                                                                  err))
                 continue
+
+            # Add library to task
+            task.set_library(self.lib)
 
             self.task_registry[task_name] = {
                 "instance": task,

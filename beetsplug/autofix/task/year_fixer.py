@@ -4,9 +4,8 @@
 #  Created: 3/26/20, 8:14 PM
 #  License: See LICENSE.txt
 
-from beetsplug.autofix.task import Task
-
 from beetsplug.autofix import common
+from beetsplug.autofix.task import Task
 from beetsplug.yearfixer import YearFixerPlugin, YearFixerCommand
 
 
@@ -31,6 +30,7 @@ class YearFixerTask(Task):
             return
 
         cmd: YearFixerCommand = self.plugin.commands()[0]
+        cmd.lib = self.lib
 
         orig_year = self.item.get("year")
         orig_original_year = self.item.get("original_year")
