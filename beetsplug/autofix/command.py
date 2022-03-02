@@ -12,7 +12,7 @@ from alive_progress import alive_bar
 from beets.dbcore.query import FixedFieldSort
 from beets.library import Library, Item, parse_query_parts
 from beets.ui import Subcommand, decargs
-from beets.util.confit import Subview
+from confuse import Subview
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
 

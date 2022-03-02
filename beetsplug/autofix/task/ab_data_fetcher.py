@@ -4,8 +4,7 @@
 #  Created: 3/25/20, 3:44 PM
 #  License: See LICENSE.txt
 
-from beets.util.confit import Subview
-
+from confuse import Subview
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
 

@@ -5,7 +5,7 @@
 #  License: See LICENSE.txt
 
 from beets.library import Item
-from beets.util.confit import Subview
+from confuse import Subview
 from beetsplug.autofix import common
 from beetsplug.autofix.task import Task
 from beetsplug.xtractor import XtractorPlugin, XtractorCommand
