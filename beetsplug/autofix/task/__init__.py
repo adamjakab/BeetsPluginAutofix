@@ -12,7 +12,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from beets.library import Item, Library
-from beets.util.confit import Subview
+from confuse import Subview
 from beetsplug.autofix import common
 
 
