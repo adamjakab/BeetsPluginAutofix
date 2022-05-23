@@ -80,9 +80,9 @@ class AutofixCommand(Subcommand):
         done = 0
         self._say("Total number of items: {}".format(len(items)))
         with alive_bar(len(items)) as bar:
-            for i, item in enumerate(items):
+            for item in items:
                 try:
-                    bar(i)
+                    bar()
                     self._execute_tasks_for_item(item)
                     done += 1
                 except RuntimeError as err:
