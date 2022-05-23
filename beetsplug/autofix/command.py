@@ -82,7 +82,7 @@ class AutofixCommand(Subcommand):
         with alive_bar(len(items)) as bar:
             for item in items:
                 try:
-                    bar(str(item))
+                    bar()
                     self._execute_tasks_for_item(item)
                     done += 1
                 except RuntimeError as err:
