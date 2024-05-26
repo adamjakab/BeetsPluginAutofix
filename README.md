@@ -6,9 +6,11 @@
 
 # Autofix (Beets Plugin)
 
+**Please note that this plugin is highly experimental.**
+
 The _beets-autofix_ plugin helps you to automate the tasks that you keep repeating to maintain your library.
 
-The plugin is a wrapper around the plugins that you already have in beets. It iterates through the items you have in your library and calls the individual plugins to execute their jobs as they are configured by you.
+The plugin is a wrapper around some of the plugins that you already have in beets. It iterates through the items you have in your library and calls the individual plugins to execute their jobs as they are configured by you. As of now the list of tasks is hard-coded and you can only chose to enable/disable them during the run.
 
 ## Installation
 
