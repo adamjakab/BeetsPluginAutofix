@@ -36,11 +36,10 @@ setup(
     test_suite='test',
     packages=['beetsplug.autofix', 'beetsplug.autofix.task'],
 
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 
     install_requires=[
-        'beets>=1.4.9',
-        'alive-progress',
+        'beets>=1.4.9'
     ],
 
     tests_require=[
@@ -58,8 +57,10 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Environment :: Console',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 )
